@@ -1,0 +1,109 @@
+.text
+main:
+	jal getFeet
+	jal getInches
+	
+	la $a0, newLine # new line
+		li $v0, 4
+		syscall
+	
+	jal calculateMeters
+	jal displayResultMeters
+	jal calculateCentimeters
+	jal displayResultCentimeters
+	j Exit
+
+	getInches:
+		##print string###
+		la $a0,inchPhrase
+		li $v0, 4
+		syscall
+		#get inches########
+		li $v0, 7
+		syscall
+		s.d $f0, inches
+		jr $ra
+		
+	getFeet:
+		##print string###
+		la $a0, feetPhrase
+		li $v0, 4
+		syscall
+		#get feet########
+		li $v0, 7
+		syscall
+		s.d $f0, feet
+		jr $ra
+	calculateMeters:
+		# calculate total inches
+		l.d $f6, inches #create temp inches so it can be overwritten
+		
+		l.d $f0, feet
+		l.d $f2, feetToInches
+		mul.d $f0, $f2, $f0
+		l.d $f2, inches
+		add.d $f0, $f2, $f0
+		s.d $f0, inches
+		# calculate meters
+		l.d $f4, inches
+		l.d $f2, meterCoefficient
+		mul.d $f4, $f2, $f4
+		s.d $f4, meters
+		
+		s.d $f6, inches # restore inches to original value
+		jr $ra
+	calculateCentimeters: # METERS MUST FIRST BE COMPUTED
+		l.d $f2, meters
+		l.d $f4, metersToCentimeters
+		mul.d $f2, $f2, $f4
+		s.d $f2, centimeters
+		
+		jr $ra
+	displayResultCentimeters:
+		la $a0,resultPhrase
+		li $v0, 4
+		syscall
+		l.d $f12, centimeters
+		li $v0, 3
+		syscall
+		la $a0,resultPhrase3
+		li $v0, 4
+		syscall
+		la $a0, newLine
+		li $v0, 4
+		syscall
+		jr $ra
+		
+	displayResultMeters:
+		la $a0,resultPhrase
+		li $v0, 4
+		syscall
+		l.d $f12, meters
+		li $v0, 3
+		syscall
+		la $a0,resultPhrase2
+		li $v0, 4
+		syscall
+		la $a0, newLine
+		li $v0, 4
+		syscall
+		jr $ra
+	Exit:
+		li $v0, 10
+		syscall
+.data
+	feetPhrase: .asciiz"Enter the height in feet > "
+	inchPhrase: .asciiz"Enter the height in inches > "
+	resultPhrase: .asciiz"Height is "
+	resultPhrase2: .asciiz" meters."
+	resultPhrase3: .asciiz" centimeters."
+	meters: .double 0.0
+	centimeters: .double 0.0
+	feet: .double 0
+	inches: .double 0
+	zero: .word 0
+	meterCoefficient: .double 0.0254
+	centimeterCoefficient: .double 2.54
+	metersToCentimeters: .double 100.0
+	feetToInches: .double 12.0
+	newLine: .asciiz"\n"
